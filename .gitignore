@@ -1,2 +1,6 @@
 
 /.idea
+*.pyc
+DB/DataBase.db
+const.py
+const.py
