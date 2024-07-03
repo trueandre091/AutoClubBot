@@ -18,6 +18,7 @@ def main() -> None:
     general_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
         states={
+            set_info_state: [CallbackQueryHandler(set_info_button_handler)],
             set_info_name_state: [MessageHandler(filters.TEXT & ~filters.Regex("^(Отмена)$"), set_info_name_handler)],
             set_info_car_brand_state: [MessageHandler(filters.TEXT & ~filters.Regex("^(Отмена)$"), set_info_car_brand_handler)],
             set_info_car_drive_state: [MessageHandler(filters.TEXT & ~filters.Regex("^(Отмена)$"), set_info_car_drive_handler)],

@@ -26,7 +26,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup = InlineKeyboardMarkup.from_row(buttons)
 
         await update.message.chat.send_message(start_view["2"], reply_markup=reply_markup)
-        return set_info_name_state
+        return set_info_state
 
     await send_general_panel(update, context)
     return general_state
