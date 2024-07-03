@@ -1,14 +1,21 @@
-from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import CallbackContext, ConversationHandler
+from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import CallbackContext
 
 from logs.logger import logger
 import json
+from asyncio import sleep
 
 from DB import database as db
 from classes.states import *
+from handler.buttons_handler import set_info_button_handler
+from functions import isnum, issetinfo
 
+with open("view\\user\\start_view.json", encoding="utf-8") as file:
+    start_view = json.load(file)
 with open("view\\user\\set_info_view.json", encoding="utf-8") as file:
     set_info_view = json.load(file)
+with open("view\\user\\general_view.json", encoding="utf-8") as file:
+    general_view = json.load(file)
 
 
 async def set_info_name_handler(update: Update, context: CallbackContext):
@@ -44,29 +51,22 @@ async def set_info_car_drive_handler(update: Update, context: CallbackContext):
     db.update_user(update.message.from_user.id, car_drive=match[message])
 
     await update.message.chat.send_message(set_info_view["6"],
-                                           reply_markup=ReplyKeyboardMarkup([["/cancel"]], resize_keyboard=True))
+                                           reply_markup=ReplyKeyboardMarkup([["Отмена"]], resize_keyboard=True))
     return set_info_car_power_state
-
-
-def isnum(string):
-    try:
-        int(string)
-    except ValueError:
-        return False
-    return True
 
 
 async def set_info_car_power_handler(update: Update, context: CallbackContext):
     logger.info("Set car power %s: %s", update.message.from_user.username, update.message.text)
 
     message = update.message.text
-    if not isnum(message):
-        await update.message.chat.send_message(set_info_view["6"])
+    chat = update.message.chat
+    if not isnum.isnum(message):
+        await chat.send_message(set_info_view["6"])
         return set_info_car_power_state
 
     db.update_user(update.message.from_user.id, car_power=int(message))
 
-    await update.message.chat.send_message(set_info_view["7"])
+    await chat.send_message(set_info_view["7"])
     return set_info_car_number_state
 
 
@@ -74,18 +74,36 @@ async def set_info_car_number_handler(update: Update, context: CallbackContext):
     logger.info("Set car number %s: %s", update.message.from_user.username, update.message.text)
 
     message = update.message.text
+    user = update.message.from_user
+    chat = update.message.chat
     if len(message) != 3:
-        await update.message.chat.send_message(set_info_view["7"])
+        await chat.send_message(set_info_view["7"])
         return set_info_car_number_state
 
     db.update_user(update.message.from_user.id, car_number=message)
 
-    await update.message.chat.send_message(set_info_view["8"])
-    return ConversationHandler.END
+    if not issetinfo.issetinfo(user.id):
+        await sleep(1)
+        await chat.send_message(start_view["3"])
+        return await set_info_button_handler(update, context)
+
+    await chat.send_message(set_info_view["8"])
+    await sleep(1)
+    await chat.send_message(general_view["2"], reply_markup=general_reply_markup(general_view["buttons"].values()))
+    return general_state
 
 
 async def cancel(update: Update, context: CallbackContext) -> int:
     logger.info("Cancel set info %s: %s", update.message.from_user.username, update.message.text)
 
     await update.message.reply_text("Операция отменена.")
-    return ConversationHandler.END
+
+    user = update.message.from_user
+    chat = update.message.chat
+    if not issetinfo.issetinfo(user.id):
+        await sleep(1)
+        await chat.send_message(start_view["3"])
+        return await set_info_button_handler(update, context)
+
+    await chat.send_message(general_view["2"], reply_markup=general_reply_markup(general_view["buttons"].values()))
+    return general_state

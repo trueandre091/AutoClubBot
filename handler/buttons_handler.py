@@ -12,21 +12,29 @@ with open("view\\user\\start_view.json", encoding="utf-8") as file:
     start_view = json.load(file)
 with open("view\\user\\set_info_view.json", encoding="utf-8") as file:
     set_info_view = json.load(file)
+with open("view\\user\\general_view.json", encoding="utf-8") as file:
+    general_view = json.load(file)
 
 
 async def set_info_button_handler(update: Update, context: CallbackContext):
-    query = update.callback_query
-    chat = query.message.chat
-    await query.answer()
+    chat = update.effective_chat
     await chat.send_message(set_info_view["2"])
     await chat.send_message(set_info_view["3"],
-                            reply_markup=ReplyKeyboardMarkup([["/cancel"]], resize_keyboard=True))
+                            reply_markup=ReplyKeyboardMarkup([["Отмена"]], resize_keyboard=True))
 
     return set_info_name_state
 
 
-async def general_buttons_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def general_buttons_handler(update: Update, context: CallbackContext):
     query = update.callback_query
-    await query.answer()
     user = query.from_user
-    db.update_user(query.from_user.id, last_timestamp=datetime.now())
+    await query.answer()
+
+    if query.data in general_view["buttons"].values():
+        if query.data == general_view["buttons"]["1"]:
+            return await set_info_button_handler(update, context)
+
+        elif query.data == general_view["buttons"]["2"]:
+            logger.info("Upcoming events: %s", user.username)
+
+

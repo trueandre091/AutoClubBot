@@ -6,11 +6,10 @@ import json
 
 from DB import database as db
 from classes.states import *
+from panels.user.general import send_general_panel
 
 with open("view\\user\\start_view.json", encoding="utf-8") as file:
     start_view = json.load(file)
-with open("view\\user\\general_view.json", encoding="utf-8") as file:
-    general_view = json.load(file)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -26,10 +25,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in start_view["buttons"].values()]
         reply_markup = InlineKeyboardMarkup.from_row(buttons)
 
-        await update.message.reply_text(start_view["2"], reply_markup=reply_markup)
+        await update.message.chat.send_message(start_view["2"], reply_markup=reply_markup)
         return set_info_name_state
 
-    buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in general_view["buttons"].values()]
-    reply_markup = InlineKeyboardMarkup.from_row(buttons)
-    await update.message.reply_text(general_view["2"], reply_markup=reply_markup)
+    await send_general_panel(update, context)
     return general_state
