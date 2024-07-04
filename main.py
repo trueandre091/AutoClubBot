@@ -6,7 +6,7 @@ from const import TOKEN
 
 from handler.buttons_handler import *
 from handler.messages_handler import *
-from panels.user.start import *
+from panels.start import *
 from classes.states import *
 
 filterwarnings(action="ignore", message=r".*CallbackQueryHandler", category=PTBUserWarning)

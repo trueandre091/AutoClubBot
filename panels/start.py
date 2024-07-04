@@ -6,7 +6,7 @@ import json
 
 from DB import database as db
 from classes.states import *
-from panels.user.general import send_general_panel
+from panels.general import send_general_panel
 
 with open("view\\user\\start_view.json", encoding="utf-8") as file:
     start_view = json.load(file)

@@ -1,4 +1,4 @@
-from telegram import Update, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
+from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import CallbackContext
 
 from logs.logger import logger
@@ -9,7 +9,9 @@ from DB import database as db
 from classes.states import *
 from handler.buttons_handler import set_info_button_handler
 from functions import isnum, issetinfo
-from panels.user.general import send_general_panel
+from panels.general import send_general_panel
+from panels.set_info import send_set_info_car_brand_panel, send_set_info_car_drive_panel, \
+    send_set_info_car_power_panel, send_set_info_car_number_panel
 
 with open("view\\user\\start_view.json", encoding="utf-8") as file:
     start_view = json.load(file)
@@ -25,7 +27,7 @@ async def set_info_name_handler(update: Update, context: CallbackContext):
     message = update.message.text
     db.update_user(update.message.from_user.id, name=message)
 
-    await update.message.chat.send_message(set_info_view["4"])
+    await send_set_info_car_brand_panel(update, context)
     return set_info_car_brand_state
 
 
@@ -35,12 +37,7 @@ async def set_info_car_brand_handler(update: Update, context: CallbackContext):
     message = update.message.text
     db.update_user(update.message.from_user.id, car_brand=message)
 
-    reply_keyboard = [list(set_info_view["buttons"].values())]
-    reply_markup = ReplyKeyboardMarkup(
-        reply_keyboard, one_time_keyboard=True, resize_keyboard=True
-    )
-
-    await update.message.chat.send_message(set_info_view["5"], reply_markup=reply_markup)
+    await send_set_info_car_drive_panel(update, context)
     return set_info_car_drive_state
 
 
@@ -51,8 +48,7 @@ async def set_info_car_drive_handler(update: Update, context: CallbackContext):
     match = dict(zip(set_info_view["buttons"].values(), ["FWD", "RWD", "AWD"]))
     db.update_user(update.message.from_user.id, car_drive=match[message])
 
-    await update.message.chat.send_message(set_info_view["6"],
-                                           reply_markup=ReplyKeyboardMarkup([["Отмена"]], resize_keyboard=True))
+    await send_set_info_car_power_panel(update, context)
     return set_info_car_power_state
 
 
@@ -60,14 +56,13 @@ async def set_info_car_power_handler(update: Update, context: CallbackContext):
     logger.info("Set car power %s: %s", update.message.from_user.username, update.message.text)
 
     message = update.message.text
-    chat = update.message.chat
     if not isnum.isnum(message):
-        await chat.send_message(set_info_view["6"])
+        await send_set_info_car_power_panel(update, context)
         return set_info_car_power_state
 
     db.update_user(update.message.from_user.id, car_power=int(message))
 
-    await chat.send_message(set_info_view["7"])
+    await send_set_info_car_number_panel(update, context)
     return set_info_car_number_state
 
 
@@ -78,7 +73,7 @@ async def set_info_car_number_handler(update: Update, context: CallbackContext):
     user = update.message.from_user
     chat = update.message.chat
     if len(message) != 3:
-        await chat.send_message(set_info_view["7"])
+        await send_set_info_car_number_panel(update, context)
         return set_info_car_number_state
 
     db.update_user(update.message.from_user.id, car_number=message)

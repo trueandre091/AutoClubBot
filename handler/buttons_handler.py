@@ -3,10 +3,10 @@ from telegram.ext import ContextTypes, CallbackContext
 
 from logs.logger import logger
 import json
-from datetime import datetime
 
 from DB import database as db
 from classes.states import *
+from panels.set_info import send_set_info_name_panel
 
 with open("view\\user\\start_view.json", encoding="utf-8") as file:
     start_view = json.load(file)
@@ -17,10 +17,7 @@ with open("view\\user\\general_view.json", encoding="utf-8") as file:
 
 
 async def set_info_button_handler(update: Update, context: CallbackContext):
-    chat = update.effective_chat
-    await chat.send_message(set_info_view["2"])
-    await chat.send_message(set_info_view["3"],
-                            reply_markup=ReplyKeyboardMarkup([["Отмена"]], resize_keyboard=True))
+    await send_set_info_name_panel(update, context)
 
     return set_info_name_state
 
