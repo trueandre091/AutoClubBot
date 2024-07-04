@@ -2,7 +2,6 @@ import os
 import sqlite3
 from datetime import datetime, timedelta
 
-
 DATABASE_DIR = os.path.dirname(__file__)
 DATABASE_NAME = "DataBase.db"
 DATABASE_PATH = os.path.join(DATABASE_DIR, DATABASE_NAME)
@@ -44,10 +43,10 @@ def create_table():
             conn.close()
 
 
-def create_statistics_table():
+def create_logs_table():
     conn = create_connection()
     cursor = conn.cursor()
-    table_creation_query = """ CREATE TABLE IF NOT EXISTS events (
+    table_creation_query = """ CREATE TABLE IF NOT EXISTS logs (
                                         id integer PRIMARY KEY AUTOINCREMENT,
                                         user_id integer NOT NULL,
                                         event text NOT NULL,
@@ -64,6 +63,111 @@ def create_statistics_table():
             conn.close()
 
 
+def create_events_table():
+    conn = create_connection()
+    cursor = conn.cursor()
+    table_creation_query = """ CREATE TABLE IF NOT EXISTS events (
+                                        event_id integer PRIMARY KEY AUTOINCREMENT,
+                                        admin_id integer NOT NULL,
+                                        name text NOT NULL,
+                                        date DATETIME NOT NULL,
+                                        place text NOT NULL,
+                                        info text NOT NULL,
+                                        members text NOT NULL,
+                                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                                    ); """
+    try:
+        cursor.execute(table_creation_query)
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Ошибка при создани таблички мероприятий: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+
+def add_event(admin_id, name="", date=datetime.now(), place="", info="", members=""):
+    conn = create_connection()
+    sql = ''' INSERT INTO events(name, date, place, info, admin_id, members)
+                  VALUES(?,?,?,?,?,?) '''
+    try:
+        cursor = conn.cursor()
+        cursor.execute(sql, (name, date, place, info, admin_id, members))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Ошибка при добавлении мероприятия: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+
+def get_event_by_id(event_id):
+    conn = create_connection()
+    sql = 'SELECT * FROM events WHERE event_id=?'
+    try:
+        cursor = conn.cursor()
+        cursor.execute(sql, (event_id,))
+        event = cursor.fetchone()
+        return event
+    except sqlite3.Error as e:
+        print(f"Ошибка при получении мероприятия: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+
+def update_event(event_id, name=None, date=None, place=None, info=None, admin_id=None, members=None):
+    conn = create_connection()
+    sql = ''' UPDATE events
+                  SET admin_id = ?,
+                      name = ?,
+                      date = ?,
+                      place = ?,
+                      info = ?,
+                      members = ?,
+                  WHERE event_id = ?'''
+    try:
+        cursor = conn.cursor()
+        current_event = get_event_by_id(event_id)
+        if not current_event:
+            print("Event not found.")
+            return
+
+        data = (
+            admin_id if admin_id is not None else current_event[1],
+            name if name is not None else current_event[2],
+            date if date is not None else current_event[3],
+            place if place is not None else current_event[4],
+            info if info is not None else current_event[5],
+            members if members is not None else current_event[6],
+            event_id,
+        )
+
+        cursor.execute(sql, data)
+        conn.commit()
+    except sqlite3.Error as e:
+        print(e)
+    finally:
+        if conn:
+            conn.close()
+
+
+def delete_event(event_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    sql_query = '''DELETE FROM events WHERE event_id = ?'''
+
+    try:
+        cursor.execute(sql_query, (event_id,))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Ошибка при удалении мероприятия: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+
 def add_user(user_id, username, name="", car_brand="", car_drive="FWD", car_power=0, car_number=""):
     conn = create_connection()
     sql = ''' INSERT INTO users(id, username, name, car_brand, car_drive, car_power, car_number)
@@ -73,23 +177,22 @@ def add_user(user_id, username, name="", car_brand="", car_drive="FWD", car_powe
         cursor.execute(sql, (user_id, username, name, car_brand, car_drive, car_power, car_number))
         conn.commit()
     except sqlite3.Error as e:
-        print(e)
+        print(f"Ошибка при добавлении пользователя в базу данных: {e}")
     finally:
         if conn:
             conn.close()
 
 
-def add_event(user_id, event, info=""):
-    """Add an event for a user to the statistics table."""
+def add_log(user_id, event, info=""):
     conn = create_connection()
-    sql = ''' INSERT INTO events(user_id, event, info)
+    sql = ''' INSERT INTO logs(user_id, event, info)
               VALUES(?,?,?) '''
     try:
         cursor = conn.cursor()
         cursor.execute(sql, (user_id, event, info))
         conn.commit()
     except sqlite3.Error as e:
-        print(f"An error occurred: {e}")
+        print(f"Ошибка при добавлении лога: {e}")
     finally:
         if conn:
             conn.close()
@@ -104,33 +207,6 @@ def get_all_users():
         cursor.execute(sql)
         all_users = cursor.fetchall()
         return all_users
-    except sqlite3.Error as e:
-        print(e)
-    finally:
-        if conn:
-            conn.close()
-
-
-def reset_likes(user_id):
-    conn = create_connection()
-    sql = ''' UPDATE users
-                  SET likes = ?
-                  WHERE id = ?'''
-    try:
-        cursor = conn.cursor()
-        current_user = get_user_by_id(user_id)
-        if not current_user:
-            print("User not found.")
-            return
-
-        likes = ""
-        data = (
-            likes,
-            user_id,
-        )
-
-        cursor.execute(sql, data)
-        conn.commit()
     except sqlite3.Error as e:
         print(e)
     finally:
@@ -192,39 +268,7 @@ def get_user_by_id(user_id):
             conn.close()
 
 
-# Функция для получения статистики за определенный период
-def get_events(start_date, end_date):
-    conn = create_connection()
-    sql = '''SELECT event, info, timestamp FROM statistics WHERE timestamp BETWEEN ? AND ?'''
-    try:
-        cursor = conn.cursor()
-        cursor.execute(sql, (start_date, end_date))
-        events = cursor.fetchall()
-        return events
-    except sqlite3.Error as e:
-        print(e)
-    finally:
-        if conn:
-            conn.close()
-
-
-def get_active_users(start_date, end_date):
-    conn = create_connection()
-    active_users = []
-    try:
-        cur = conn.cursor()
-        cur.execute("SELECT id, last_timestamp FROM users WHERE last_timestamp BETWEEN ? AND ?",
-                    (start_date, end_date))
-        active_users = cur.fetchall()
-    except sqlite3.Error as e:
-        print(e)
-    finally:
-        conn.close()
-    if conn:
-        conn.close()
-    return active_users
-
-
 if __name__ == "__main__":
     create_table()
-    create_statistics_table()
+    create_logs_table()
+    create_events_table()

@@ -5,7 +5,8 @@ from telegram.warnings import PTBUserWarning
 from const import TOKEN
 
 from handler.buttons_handler import *
-from handler.messages_handler import *
+from handler.cancel_handler import cancel
+from handler.set_info_handler import SET_INFO_HANDLERS_FILTERS
 from panels.start import *
 from classes.states import *
 
@@ -19,13 +20,15 @@ def main() -> None:
         entry_points=[CommandHandler('start', start)],
         states={
             set_info_state: [CallbackQueryHandler(set_info_button_handler)],
-            set_info_name_state: [MessageHandler(filters.TEXT & ~filters.Regex("^(Отмена)$"), set_info_name_handler)],
-            set_info_car_brand_state: [MessageHandler(filters.TEXT & ~filters.Regex("^(Отмена)$"), set_info_car_brand_handler)],
-            set_info_car_drive_state: [MessageHandler(filters.TEXT & ~filters.Regex("^(Отмена)$"), set_info_car_drive_handler)],
-            set_info_car_power_state: [MessageHandler(filters.TEXT & ~filters.Regex("^(Отмена)$"), set_info_car_power_handler)],
-            set_info_car_number_state: [MessageHandler(filters.TEXT & ~filters.Regex("^(Отмена)$"), set_info_car_number_handler)],
+            set_info_name_state: SET_INFO_HANDLERS_FILTERS[0],
+            set_info_car_brand_state: SET_INFO_HANDLERS_FILTERS[1],
+            set_info_car_drive_state: SET_INFO_HANDLERS_FILTERS[2],
+            set_info_car_power_state: SET_INFO_HANDLERS_FILTERS[3],
+            set_info_car_number_state: SET_INFO_HANDLERS_FILTERS[4],
             general_state: [CallbackQueryHandler(general_buttons_handler)],
-            upcoming_events_state: []
+            upcoming_events_state: [],
+            create_event_state: [CallbackQueryHandler(create_event_button_handler)],
+            create_event_name_state: []
         },
         fallbacks=[MessageHandler(filters.Regex("^(Отмена)$"), cancel)]
     )

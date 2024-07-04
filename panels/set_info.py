@@ -4,12 +4,12 @@ from telegram.ext import CallbackContext
 from logs.logger import logger
 import json
 
-with open("view\\user\\set_info_view.json", encoding="utf-8") as file:
+with open("view\\set_info_view.json", encoding="utf-8") as file:
     set_info_view = json.load(file)
 
 
 async def send_set_info_name_panel(update: Update, context: CallbackContext):
-    logger.info("Set info: %s", update.message.from_user.username)
+    logger.info("Set info: %s", update.effective_user.username)
 
     chat = update.effective_chat
 

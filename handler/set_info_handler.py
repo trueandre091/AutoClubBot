@@ -1,5 +1,5 @@
-from telegram import Update, ReplyKeyboardRemove
-from telegram.ext import CallbackContext
+from telegram import Update
+from telegram.ext import CallbackContext, MessageHandler, filters
 
 from logs.logger import logger
 import json
@@ -13,12 +13,8 @@ from panels.general import send_general_panel
 from panels.set_info import send_set_info_car_brand_panel, send_set_info_car_drive_panel, \
     send_set_info_car_power_panel, send_set_info_car_number_panel
 
-with open("view\\user\\start_view.json", encoding="utf-8") as file:
-    start_view = json.load(file)
-with open("view\\user\\set_info_view.json", encoding="utf-8") as file:
+with open("view\\set_info_view.json", encoding="utf-8") as file:
     set_info_view = json.load(file)
-with open("view\\user\\general_view.json", encoding="utf-8") as file:
-    general_view = json.load(file)
 
 
 async def set_info_name_handler(update: Update, context: CallbackContext):
@@ -80,7 +76,7 @@ async def set_info_car_number_handler(update: Update, context: CallbackContext):
 
     if not issetinfo.issetinfo(user.id):
         await sleep(1)
-        await chat.send_message(start_view["3"])
+        await chat.send_message(set_info_view["9"])
         return await set_info_button_handler(update, context)
 
     await chat.send_message(set_info_view["8"])
@@ -89,17 +85,12 @@ async def set_info_car_number_handler(update: Update, context: CallbackContext):
     return general_state
 
 
-async def cancel(update: Update, context: CallbackContext) -> int:
-    logger.info("Cancel set info %s: %s", update.message.from_user.username, update.message.text)
-
-    await update.message.reply_text("Операция отменена.", reply_markup=ReplyKeyboardRemove())
-
-    user = update.message.from_user
-    chat = update.message.chat
-    if not issetinfo.issetinfo(user.id):
-        await sleep(1)
-        await chat.send_message(start_view["3"], reply_markup=ReplyKeyboardRemove())
-        return await set_info_button_handler(update, context)
-
-    await send_general_panel(update, context)
-    return general_state
+SET_INFO_HANDLERS = [
+    set_info_name_handler,
+    set_info_car_brand_handler,
+    set_info_car_drive_handler,
+    set_info_car_power_handler,
+    set_info_car_number_handler
+]
+SET_INFO_HANDLERS_FILTERS = [[MessageHandler(filters.TEXT & ~filters.Regex("^(Отмена)$"), handler)] for handler in
+                             SET_INFO_HANDLERS]
