@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime
 
 DATABASE_DIR = os.path.dirname(__file__)
 DATABASE_NAME = "DataBase.db"
@@ -70,7 +70,7 @@ def create_events_table():
                                         event_id integer PRIMARY KEY AUTOINCREMENT,
                                         admin_id integer NOT NULL,
                                         name text NOT NULL,
-                                        date DATETIME NOT NULL,
+                                        date DATETIME DEFAULT CURRENT_TIMESTAMP,
                                         place text NOT NULL,
                                         info text NOT NULL,
                                         members text NOT NULL,
@@ -86,7 +86,7 @@ def create_events_table():
             conn.close()
 
 
-def add_event(admin_id, name="", date=datetime.now(), place="", info="", members=""):
+def add_event(admin_id, name="", date="", place="", info="", members=""):
     conn = create_connection()
     sql = ''' INSERT INTO events(name, date, place, info, admin_id, members)
                   VALUES(?,?,?,?,?,?) '''
@@ -94,6 +94,8 @@ def add_event(admin_id, name="", date=datetime.now(), place="", info="", members
         cursor = conn.cursor()
         cursor.execute(sql, (name, date, place, info, admin_id, members))
         conn.commit()
+        event_id = cursor.lastrowid
+        return event_id
     except sqlite3.Error as e:
         print(f"Ошибка при добавлении мероприятия: {e}")
     finally:
@@ -124,7 +126,7 @@ def update_event(event_id, name=None, date=None, place=None, info=None, admin_id
                       date = ?,
                       place = ?,
                       info = ?,
-                      members = ?,
+                      members = ?
                   WHERE event_id = ?'''
     try:
         cursor = conn.cursor()
@@ -136,7 +138,7 @@ def update_event(event_id, name=None, date=None, place=None, info=None, admin_id
         data = (
             admin_id if admin_id is not None else current_event[1],
             name if name is not None else current_event[2],
-            date if date is not None else current_event[3],
+            datetime.strptime(date, '%d.%m.%Y %H:%M') if date is not None else current_event[3],
             place if place is not None else current_event[4],
             info if info is not None else current_event[5],
             members if members is not None else current_event[6],

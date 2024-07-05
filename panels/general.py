@@ -22,7 +22,7 @@ def create_general_message(user_id):
 
 
 def general_reply_markup(isadmin: bool):
-    names = general_view["buttons"].values() if isadmin else [general_view["buttons"].values()][:-1]
+    names = general_view["buttons"].values() if isadmin else list(general_view["buttons"].values())[:-1]
     buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in names]
     return InlineKeyboardMarkup.from_column(buttons)
 

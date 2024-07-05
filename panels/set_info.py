@@ -15,7 +15,7 @@ async def send_set_info_name_panel(update: Update, context: CallbackContext):
 
     await chat.send_message(set_info_view["2"])
     await chat.send_message(set_info_view["3"],
-                            reply_markup=ReplyKeyboardMarkup([["Отмена"]], resize_keyboard=True))
+                            reply_markup=ReplyKeyboardMarkup([[set_info_view["buttons"]["4"]]], resize_keyboard=True))
 
 
 async def send_set_info_car_brand_panel(update: Update, context: CallbackContext):
@@ -38,7 +38,7 @@ async def send_set_info_car_power_panel(update: Update, context: CallbackContext
     chat = update.effective_chat
 
     await chat.send_message(set_info_view["6"],
-                            reply_markup=ReplyKeyboardMarkup([["Отмена"]], resize_keyboard=True))
+                            reply_markup=ReplyKeyboardMarkup([[set_info_view["buttons"]["4"]]], resize_keyboard=True))
 
 
 async def send_set_info_car_number_panel(update: Update, context: CallbackContext):

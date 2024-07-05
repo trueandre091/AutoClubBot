@@ -5,8 +5,8 @@ from telegram.warnings import PTBUserWarning
 from const import TOKEN
 
 from handler.buttons_handler import *
-from handler.cancel_handler import cancel
 from handler.set_info_handler import SET_INFO_HANDLERS_FILTERS
+from handler.create_event_handler import CREATE_EVENT_HANDLERS_FILTERS
 from panels.start import *
 from classes.states import *
 
@@ -28,9 +28,13 @@ def main() -> None:
             general_state: [CallbackQueryHandler(general_buttons_handler)],
             upcoming_events_state: [],
             create_event_state: [CallbackQueryHandler(create_event_button_handler)],
-            create_event_name_state: []
+            create_event_name_state: CREATE_EVENT_HANDLERS_FILTERS[0],
+            create_event_date_state: CREATE_EVENT_HANDLERS_FILTERS[1],
+            create_event_place_state: CREATE_EVENT_HANDLERS_FILTERS[2],
+            create_event_info_state: CREATE_EVENT_HANDLERS_FILTERS[3],
+            publish_event_state: [],
         },
-        fallbacks=[MessageHandler(filters.Regex("^(Отмена)$"), cancel)]
+        fallbacks=[]
     )
 
     application.add_handler(general_handler)

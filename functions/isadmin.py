@@ -1,5 +1,5 @@
-from const import admin
+from const import ADMIN
 
 
 def isadmin(user_id):
-    return True if user_id in admin else False
+    return True if user_id in ADMIN else False

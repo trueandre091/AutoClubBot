@@ -24,13 +24,11 @@ async def set_info_button_handler(update: Update, context: CallbackContext):
 
 
 async def create_event_button_handler(update: Update, context: CallbackContext):
-    logger.info("Create event: %s", update.message.from_user.username)
-
-    user = update.message.from_user
-    db.add_event(user.id)
+    user = update.effective_user
+    context.user_data["event_id"] = db.add_event(user.id)
 
     await send_create_event_name_panel(update, context)
-    return set_info_name_state
+    return create_event_name_state
 
 
 async def general_buttons_handler(update: Update, context: CallbackContext):
@@ -40,6 +38,7 @@ async def general_buttons_handler(update: Update, context: CallbackContext):
 
     if query.data in general_view["buttons"].values():
         if query.data == general_view["buttons"]["1"]:
+            logger.info("Set info: %s", user.username)
             return await set_info_button_handler(update, context)
 
         elif query.data == general_view["buttons"]["2"]:
@@ -47,6 +46,6 @@ async def general_buttons_handler(update: Update, context: CallbackContext):
 
         elif query.data == general_view["buttons"]["3"]:
             logger.info("Create event: admin %s", user.username)
-
+            return await create_event_button_handler(update, context)
 
 

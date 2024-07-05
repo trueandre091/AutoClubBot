@@ -1,4 +1,4 @@
-from telegram import Update
+from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import CallbackContext, MessageHandler, filters
 
 from logs.logger import logger
@@ -8,7 +8,7 @@ from asyncio import sleep
 from DB import database as db
 from classes.states import *
 from handler.buttons_handler import set_info_button_handler
-from functions import isnum, issetinfo
+from functions import isnum, issetinfo, isadmin
 from panels.general import send_general_panel
 from panels.set_info import send_set_info_car_brand_panel, send_set_info_car_drive_panel, \
     send_set_info_car_power_panel, send_set_info_car_number_panel
@@ -76,12 +76,28 @@ async def set_info_car_number_handler(update: Update, context: CallbackContext):
 
     if not issetinfo.issetinfo(user.id):
         await sleep(1)
-        await chat.send_message(set_info_view["9"])
+        await chat.send_message(set_info_view["10"])
         return await set_info_button_handler(update, context)
 
     await chat.send_message(set_info_view["8"])
     await sleep(1)
-    await send_general_panel(update, context)
+    await send_general_panel(update, context, isadmin.isadmin(user.id))
+    return general_state
+
+
+async def cancel_set_info(update: Update, context: CallbackContext) -> int:
+    logger.info("Cancel set info %s: %s", update.message.from_user.username, update.message.text)
+
+    await update.message.reply_text(set_info_view["9"], reply_markup=ReplyKeyboardRemove())
+
+    user = update.message.from_user
+    chat = update.message.chat
+    if not issetinfo.issetinfo(user.id):
+        await sleep(1)
+        await chat.send_message(set_info_view["10"], reply_markup=ReplyKeyboardRemove())
+        return await set_info_button_handler(update, context)
+
+    await send_general_panel(update, context, isadmin.isadmin(user.id))
     return general_state
 
 
@@ -90,7 +106,11 @@ SET_INFO_HANDLERS = [
     set_info_car_brand_handler,
     set_info_car_drive_handler,
     set_info_car_power_handler,
-    set_info_car_number_handler
+    set_info_car_number_handler,
 ]
-SET_INFO_HANDLERS_FILTERS = [[MessageHandler(filters.TEXT & ~filters.Regex("^(Отмена)$"), handler)] for handler in
-                             SET_INFO_HANDLERS]
+SET_INFO_HANDLERS_FILTERS = [
+    [
+        MessageHandler(filters.TEXT & ~filters.Regex("^(Отмена)$"), handler),
+        MessageHandler(filters.Regex("^(Отмена)$"), cancel_set_info)
+    ] for handler in SET_INFO_HANDLERS
+]
