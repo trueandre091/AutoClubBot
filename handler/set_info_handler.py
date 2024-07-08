@@ -110,7 +110,7 @@ SET_INFO_HANDLERS = [
 ]
 SET_INFO_HANDLERS_FILTERS = [
     [
+        MessageHandler(filters.Regex("^(Отмена)$"), cancel_set_info),
         MessageHandler(filters.TEXT & ~filters.Regex("^(Отмена)$"), handler),
-        MessageHandler(filters.Regex("^(Отмена)$"), cancel_set_info)
     ] for handler in SET_INFO_HANDLERS
 ]

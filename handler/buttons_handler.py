@@ -1,13 +1,21 @@
-from telegram import Update
+from asyncio import sleep
+
+from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import CallbackContext
 
 from logs.logger import logger
 import json
+import datetime
 
 from DB import database as db
 from classes.states import *
+from classes.upcoming_events_list import EventsList, UpcomingEventsPanel
+from functions import isadmin
+from panels.general import send_general_panel
 from panels.set_info import send_set_info_name_panel
 from panels.create_event import send_create_event_name_panel
+from panels.publish_event import send_publish_event_panel, send_publish_event_confirm_panel
+from panels.upcoming_events import send_upcoming_events_panel
 
 with open("view\\start_view.json", encoding="utf-8") as file:
     start_view = json.load(file)
@@ -15,6 +23,8 @@ with open("view\\set_info_view.json", encoding="utf-8") as file:
     set_info_view = json.load(file)
 with open("view\\general_view.json", encoding="utf-8") as file:
     general_view = json.load(file)
+with open("view\\publish_event_view.json", encoding="utf-8") as file:
+    publish_event_view = json.load(file)
 
 
 async def set_info_button_handler(update: Update, context: CallbackContext):
@@ -23,12 +33,62 @@ async def set_info_button_handler(update: Update, context: CallbackContext):
     return set_info_name_state
 
 
+async def upcoming_events_button_handler(update: Update, context: CallbackContext):
+    user = update.callback_query.from_user
+    panel = UpcomingEventsPanel(user.id)
+
+    await send_upcoming_events_panel(update, context, panel, True)
+    return upcoming_events_state
+
+
 async def create_event_button_handler(update: Update, context: CallbackContext):
     user = update.effective_user
     context.user_data["event_id"] = db.add_event(user.id)
 
     await send_create_event_name_panel(update, context)
     return create_event_name_state
+
+
+async def publish_event_button_handler(update: Update, context: CallbackContext):
+    query = update.callback_query
+    if query.data == publish_event_view["buttons"]["1"]:
+        await query.answer()
+        await send_publish_event_confirm_panel(update, context)
+
+        return publish_event_state
+
+    elif query.data == publish_event_view["buttons"]["2"]:
+        message_id = update.effective_message.id
+        context.user_data["buttons"] = ["Не изменять"]
+        await update.effective_chat.delete_messages([message_id, message_id - 1])
+        await send_create_event_name_panel(update, context)
+
+        return create_event_name_state
+
+    elif query.data == "Да":
+        logger.info("Publish confirmation: %s", update.effective_user.username)
+
+        message_id = update.effective_message.id
+        await update.effective_chat.delete_messages([message_id, message_id - 1])
+
+        users_db = db.get_all_users()
+        for user_db in users_db:
+            await context.bot.send_message(user_db[0], context.user_data.get("message"), parse_mode="HTML")
+
+        context.user_data.clear()
+
+        chat = update.effective_chat
+        await chat.send_message(f"Сообщение отправлено всем пользователям. Количество: {len(users_db)}",
+                                reply_markup=ReplyKeyboardRemove())
+        await sleep(1)
+        await send_general_panel(update, context, isadmin.isadmin(query.from_user.id))
+        return general_state
+
+    elif query.data == "Нет":
+        await update.effective_message.delete()
+        await send_publish_event_panel(update, context)
+
+        return publish_event_state
 
 
 async def general_buttons_handler(update: Update, context: CallbackContext):
@@ -43,6 +103,7 @@ async def general_buttons_handler(update: Update, context: CallbackContext):
 
         elif query.data == general_view["buttons"]["2"]:
             logger.info("Upcoming events: %s", user.username)
+            return await upcoming_events_button_handler(update, context)
 
         elif query.data == general_view["buttons"]["3"]:
             logger.info("Create event: admin %s", user.username)

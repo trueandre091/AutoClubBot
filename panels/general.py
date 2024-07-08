@@ -28,11 +28,11 @@ def general_reply_markup(isadmin: bool):
 
 
 async def send_general_panel(update: Update, context: ContextTypes.DEFAULT_TYPE, isadmin: bool = False):
-    logger.info("General: %s", update.message.from_user.username)
+    logger.info("General: %s", update.effective_user.username)
 
-    user = update.message.from_user
+    user = update.effective_user
+    chat = update.effective_chat
     message = create_general_message(user.id)
 
-    await update.message.chat.send_message(message, parse_mode='HTML',
-                                           reply_markup=general_reply_markup(isadmin))
-
+    await chat.send_message(message, parse_mode='HTML',
+                            reply_markup=general_reply_markup(isadmin))

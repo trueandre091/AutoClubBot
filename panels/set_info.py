@@ -26,7 +26,7 @@ async def send_set_info_car_brand_panel(update: Update, context: CallbackContext
 
 async def send_set_info_car_drive_panel(update: Update, context: CallbackContext):
     chat = update.effective_chat
-    reply_keyboard = [list(set_info_view["buttons"].values())]
+    reply_keyboard = [list(set_info_view["buttons"].values())[:3], [list(set_info_view["buttons"].values())[3]]]
     reply_markup = ReplyKeyboardMarkup(
         reply_keyboard, one_time_keyboard=True, resize_keyboard=True
     )

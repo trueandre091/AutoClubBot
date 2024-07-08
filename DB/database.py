@@ -73,6 +73,7 @@ def create_events_table():
                                         date DATETIME DEFAULT CURRENT_TIMESTAMP,
                                         place text NOT NULL,
                                         info text NOT NULL,
+                                        photo text NOT NULL,
                                         members text NOT NULL,
                                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                                     ); """
@@ -86,13 +87,13 @@ def create_events_table():
             conn.close()
 
 
-def add_event(admin_id, name="", date="", place="", info="", members=""):
+def add_event(admin_id, name="", date="", place="", info="", photo="", members=""):
     conn = create_connection()
-    sql = ''' INSERT INTO events(name, date, place, info, admin_id, members)
-                  VALUES(?,?,?,?,?,?) '''
+    sql = ''' INSERT INTO events(name, date, place, info, photo, admin_id, members)
+                  VALUES(?,?,?,?,?,?,?) '''
     try:
         cursor = conn.cursor()
-        cursor.execute(sql, (name, date, place, info, admin_id, members))
+        cursor.execute(sql, (name, date, place, info, photo, admin_id, members))
         conn.commit()
         event_id = cursor.lastrowid
         return event_id
@@ -118,7 +119,7 @@ def get_event_by_id(event_id):
             conn.close()
 
 
-def update_event(event_id, name=None, date=None, place=None, info=None, admin_id=None, members=None):
+def update_event(event_id, name=None, date=None, place=None, info=None, photo=None, admin_id=None, members=None):
     conn = create_connection()
     sql = ''' UPDATE events
                   SET admin_id = ?,
@@ -126,6 +127,7 @@ def update_event(event_id, name=None, date=None, place=None, info=None, admin_id
                       date = ?,
                       place = ?,
                       info = ?,
+                      photo = ?,
                       members = ?
                   WHERE event_id = ?'''
     try:
@@ -141,7 +143,8 @@ def update_event(event_id, name=None, date=None, place=None, info=None, admin_id
             datetime.strptime(date, '%d.%m.%Y %H:%M') if date is not None else current_event[3],
             place if place is not None else current_event[4],
             info if info is not None else current_event[5],
-            members if members is not None else current_event[6],
+            photo if photo is not None else current_event[6],
+            members if members is not None else current_event[7],
             event_id,
         )
 
@@ -165,6 +168,22 @@ def delete_event(event_id):
         conn.commit()
     except sqlite3.Error as e:
         print(f"Ошибка при удалении мероприятия: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+
+def get_all_events_after(date):
+    conn = create_connection()
+    sql = ('SELECT * FROM events '
+           'WHERE date > ?')
+    try:
+        cursor = conn.cursor()
+        cursor.execute(sql, (date,))
+        all_events = cursor.fetchall()
+        return all_events
+    except sqlite3.Error as e:
+        print(e)
     finally:
         if conn:
             conn.close()

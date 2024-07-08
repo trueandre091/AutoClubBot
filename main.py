@@ -32,7 +32,10 @@ def main() -> None:
             create_event_date_state: CREATE_EVENT_HANDLERS_FILTERS[1],
             create_event_place_state: CREATE_EVENT_HANDLERS_FILTERS[2],
             create_event_info_state: CREATE_EVENT_HANDLERS_FILTERS[3],
-            publish_event_state: [],
+            publish_event_state: [
+                CREATE_EVENT_HANDLERS_FILTERS[4][-1],
+                CallbackQueryHandler(publish_event_button_handler)
+            ],
         },
         fallbacks=[]
     )
