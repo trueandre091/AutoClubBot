@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import CallbackContext, MessageHandler, filters
 
@@ -6,6 +8,7 @@ import json
 
 from DB import database as db
 from classes.states import *
+from functions import isadmin
 from panels.general import send_general_panel
 from panels.create_event import send_create_event_date_panel, send_create_event_place_panel, \
     send_create_event_info_panel
@@ -80,7 +83,7 @@ async def cancel_create_event(update: Update, context: CallbackContext) -> int:
     await update.message.reply_text(create_event_view["7"],
                                     reply_markup=ReplyKeyboardRemove())
 
-    await send_general_panel(update, context, isadmin=True)
+    await send_general_panel(update, context, isadmin.isadmin(update.message.from_user.id))
     return general_state
 
 

@@ -2,6 +2,8 @@ import os
 import sqlite3
 from datetime import datetime
 
+from functions import ismember
+
 DATABASE_DIR = os.path.dirname(__file__)
 DATABASE_NAME = "DataBase.db"
 DATABASE_PATH = os.path.join(DATABASE_DIR, DATABASE_NAME)
@@ -137,6 +139,14 @@ def update_event(event_id, name=None, date=None, place=None, info=None, photo=No
             print("Event not found.")
             return
 
+        if members is not None:
+            if ismember.ismember(event_id, members):
+                members = current_event[7].replace(str(members) + " ", "")
+            else:
+                members = current_event[7] + str(members) + " "
+        else:
+            members = current_event[7]
+
         data = (
             admin_id if admin_id is not None else current_event[1],
             name if name is not None else current_event[2],
@@ -144,7 +154,7 @@ def update_event(event_id, name=None, date=None, place=None, info=None, photo=No
             place if place is not None else current_event[4],
             info if info is not None else current_event[5],
             photo if photo is not None else current_event[6],
-            members if members is not None else current_event[7],
+            members,
             event_id,
         )
 

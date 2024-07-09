@@ -26,7 +26,7 @@ def main() -> None:
             set_info_car_power_state: SET_INFO_HANDLERS_FILTERS[3],
             set_info_car_number_state: SET_INFO_HANDLERS_FILTERS[4],
             general_state: [CallbackQueryHandler(general_buttons_handler)],
-            upcoming_events_state: [],
+            upcoming_events_state: [CallbackQueryHandler(upcoming_events_button_handler)],
             create_event_state: [CallbackQueryHandler(create_event_button_handler)],
             create_event_name_state: CREATE_EVENT_HANDLERS_FILTERS[0],
             create_event_date_state: CREATE_EVENT_HANDLERS_FILTERS[1],

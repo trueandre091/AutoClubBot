@@ -1,4 +1,4 @@
-from telegram import InlineKeyboardButton, Update, InlineKeyboardMarkup, ReplyKeyboardMarkup
+from telegram import InlineKeyboardButton, Update, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import CallbackContext
 
 import json
@@ -29,7 +29,10 @@ async def send_publish_event_panel(update: Update, context: CallbackContext, isn
     buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in publish_event_view["buttons"].values()]
     reply_markup = InlineKeyboardMarkup.from_column(buttons)
 
-    await chat.send_message(publish_event_view["6"], reply_markup=ReplyKeyboardMarkup([[create_event_view["buttons"]["2"]]], resize_keyboard=True))
+    await chat.send_message(
+        publish_event_view["6"],
+        reply_markup=ReplyKeyboardMarkup(keyboard=[[create_event_view["buttons"]["2"]]],
+                                         resize_keyboard=True) if context.user_data.get("isnew") else ReplyKeyboardRemove())
     await chat.send_message(message, parse_mode="HTML", reply_markup=reply_markup)
 
 
@@ -38,6 +41,5 @@ async def send_publish_event_confirm_panel(update: Update, context: CallbackCont
     buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in ["Да", "Нет"]]
     reply_markup = InlineKeyboardMarkup.from_row(buttons)
 
-    await chat.send_message("Вы уверены?\nСообщение будет отправлено всем пользователям, зарегистрированным в боте",
+    await chat.send_message(publish_event_view["7"],
                             reply_markup=reply_markup)
-

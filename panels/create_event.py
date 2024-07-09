@@ -37,7 +37,6 @@ async def send_create_event_info_panel(update: Update, context: CallbackContext)
     chat = update.effective_chat
     reply_keyboard = [list(create_event_view["buttons"].values())[:2]]
     extra_buttons = context.user_data.get("buttons")
-    print(extra_buttons)
     if extra_buttons:
         reply_keyboard[0].pop(1)
         reply_keyboard.append(extra_buttons)

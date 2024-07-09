@@ -21,9 +21,10 @@ class UpcomingEventsPanel:
     def __init__(self, user_id) -> None:
         self.user_id = user_id
         self.index = -1
-        self.events_list = EventsList().events
+        self.events_list = db.get_all_events_after(datetime.datetime.today().date())
+        self.ACTIVE_PANELS.append(self)
 
-    def get_event(self, direction: bool):
+    def next_event(self, direction: bool):
         if direction:
             self.index += 1
             if self.index > len(self.events_list) - 1:
@@ -33,5 +34,12 @@ class UpcomingEventsPanel:
             if self.index < 0:
                 self.index = len(self.events_list) - 1
 
-        print(self.events_list)
         return self.events_list[self.index]
+
+    def disactivate(self):
+        self.ACTIVE_PANELS.remove(self)
+
+    def get_current_event(self):
+        return self.events_list[self.index]
+
+
