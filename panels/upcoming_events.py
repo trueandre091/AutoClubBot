@@ -4,7 +4,7 @@ from telegram.ext import CallbackContext
 import json
 
 from DB import database as db
-from classes.upcoming_events_panel import UpcomingEventsPanel
+from classes.upcoming_events_class import UpcomingEventsPanel
 from functions import isadmin, issingleevent
 
 with open("view\\publish_event_view.json", encoding="utf-8") as file:

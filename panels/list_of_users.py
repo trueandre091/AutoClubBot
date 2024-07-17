@@ -3,7 +3,7 @@ from telegram.ext import CallbackContext
 
 import json
 
-from classes.list_of_users_panel import ListOfUsersPanel
+from classes.list_of_users_class import ListOfUsersPanel
 
 with open("view\\list_of_users_view.json", encoding="utf-8") as file:
     list_of_users_view = json.load(file)

@@ -8,8 +8,8 @@ import json
 
 from DB import database as db
 from classes.states import *
-from classes.upcoming_events_panel import UpcomingEventsPanel
-from classes.list_of_users_panel import ListOfUsersPanel
+from classes.upcoming_events_class import UpcomingEventsPanel
+from classes.list_of_users_class import ListOfUsersPanel
 from functions import isadmin, ismember, isnum
 from panels.general import send_general_panel
 from panels.set_info import send_set_info_name_panel
@@ -198,6 +198,8 @@ async def publish_event_button_handler(update: Update, context: CallbackContext)
         return create_event_name_state
 
     elif query.data == publish_event_view["buttons"]["3"]:
+        await query.answer()
+
         context.user_data.clear()
 
         chat = update.effective_chat
