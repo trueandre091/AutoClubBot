@@ -28,7 +28,7 @@ def general_reply_markup(isadmin: bool):
 
 
 async def send_general_panel(update: Update, context: ContextTypes.DEFAULT_TYPE, isadmin: bool = False):
-    logger.info("General: %s", update.effective_user.username)
+    logger.info("General: %s %s", update.effective_user.id, update.effective_user.username)
 
     user = update.effective_user
     chat = update.effective_chat

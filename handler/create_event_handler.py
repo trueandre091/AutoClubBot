@@ -19,10 +19,10 @@ with open("view\\create_event_view.json", encoding="utf-8") as file:
 
 
 async def create_event_name_handler(update: Update, context: CallbackContext):
-    logger.info("Create event name %s: %s", update.message.from_user.username, update.message.text)
+    logger.info("Create event name %s %s: %s", update.message.from_user.id, update.message.from_user.username, update.message.text)
 
     message = update.message.text
-    if not message == "Не изменять":
+    if not message == create_event_view["buttons"]["4"]:
         db.update_event(context.user_data.get("event_id"), name=message)
 
     await send_create_event_date_panel(update, context)
@@ -30,10 +30,10 @@ async def create_event_name_handler(update: Update, context: CallbackContext):
 
 
 async def create_event_date_handler(update: Update, context: CallbackContext):
-    logger.info("Create event date %s: %s", update.message.from_user.username, update.message.text)
+    logger.info("Create event date %s %s: %s", update.message.from_user.id, update.message.from_user.username, update.message.text)
 
     message = update.message.text
-    if not message == "Не изменять":
+    if not message == create_event_view["buttons"]["4"]:
         chat = update.effective_chat
         try:
             db.update_event(context.user_data.get("event_id"), date=message)
@@ -46,10 +46,10 @@ async def create_event_date_handler(update: Update, context: CallbackContext):
 
 
 async def create_event_place_handler(update: Update, context: CallbackContext):
-    logger.info("Create event place %s: %s", update.message.from_user.username, update.message.text)
+    logger.info("Create event place %s %s: %s", update.message.from_user.id, update.message.from_user.username, update.message.text)
 
     message = update.message.text
-    if not message == "Не изменять":
+    if not message == create_event_view["buttons"]["4"]:
         db.update_event(context.user_data.get("event_id"), place=message)
 
     await send_create_event_info_panel(update, context)
@@ -57,10 +57,10 @@ async def create_event_place_handler(update: Update, context: CallbackContext):
 
 
 async def create_event_info_handler(update: Update, context: CallbackContext):
-    logger.info("Create event info %s: %s", update.message.from_user.username, update.message.text)
+    logger.info("Create event info %s %s: %s", update.message.from_user.id, update.message.from_user.username, update.message.text)
 
     message = update.message.text
-    if not message == "Не изменять":
+    if not message == create_event_view["buttons"]["4"]:
         db.update_event(context.user_data.get("event_id"), info=message)
 
     await send_publish_event_panel(update, context)
@@ -75,7 +75,7 @@ async def skip_create_event_info_handler(update: Update, context: CallbackContex
 
 
 async def cancel_create_event(update: Update, context: CallbackContext) -> int:
-    logger.info("Cancel create event %s: %s", update.message.from_user.username, update.message.text)
+    logger.info("Cancel create event %s %s: %s", update.message.from_user.id, update.message.from_user.username, update.message.text)
 
     db.delete_event(context.user_data.get("event_id"))
     context.user_data.clear()

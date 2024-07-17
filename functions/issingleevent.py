@@ -1,4 +1,4 @@
-from classes.upcoming_events_list import UpcomingEventsPanel
+from classes.upcoming_events_panel import UpcomingEventsPanel
 
 
 def issingleevent(panel: UpcomingEventsPanel):

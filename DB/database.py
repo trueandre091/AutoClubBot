@@ -2,8 +2,6 @@ import os
 import sqlite3
 from datetime import datetime
 
-from functions import ismember
-
 DATABASE_DIR = os.path.dirname(__file__)
 DATABASE_NAME = "DataBase.db"
 DATABASE_PATH = os.path.join(DATABASE_DIR, DATABASE_NAME)
@@ -45,38 +43,16 @@ def create_table():
             conn.close()
 
 
-def create_logs_table():
-    conn = create_connection()
-    cursor = conn.cursor()
-    table_creation_query = """ CREATE TABLE IF NOT EXISTS logs (
-                                        id integer PRIMARY KEY AUTOINCREMENT,
-                                        user_id integer NOT NULL,
-                                        event text NOT NULL,
-                                        info text NOT NULL,
-                                        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-                                    ); """
-    try:
-        cursor.execute(table_creation_query)
-        conn.commit()
-    except sqlite3.Error as e:
-        print(e)
-    finally:
-        if conn:
-            conn.close()
-
-
 def create_events_table():
     conn = create_connection()
     cursor = conn.cursor()
     table_creation_query = """ CREATE TABLE IF NOT EXISTS events (
-                                        event_id integer PRIMARY KEY AUTOINCREMENT,
+                                        id integer PRIMARY KEY AUTOINCREMENT,
                                         admin_id integer NOT NULL,
                                         name text NOT NULL,
                                         date DATETIME DEFAULT CURRENT_TIMESTAMP,
                                         place text NOT NULL,
                                         info text NOT NULL,
-                                        photo text NOT NULL,
-                                        members text NOT NULL,
                                         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                                     ); """
     try:
@@ -89,13 +65,34 @@ def create_events_table():
             conn.close()
 
 
-def add_event(admin_id, name="", date="", place="", info="", photo="", members=""):
+def create_user_event_table():
     conn = create_connection()
-    sql = ''' INSERT INTO events(name, date, place, info, photo, admin_id, members)
-                  VALUES(?,?,?,?,?,?,?) '''
+    cursor = conn.cursor()
+    table_creation_query = """ CREATE TABLE IF NOT EXISTS user_event (
+                                        user_id INTEGER,
+                                        event_id INTEGER,
+                                        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                        FOREIGN KEY (user_id) REFERENCES users (user_id),
+                                        FOREIGN KEY (event_id) REFERENCES events (event_id),
+                                        PRIMARY KEY (user_id, event_id)
+                                    ); """
+    try:
+        cursor.execute(table_creation_query)
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Ошибка при создани таблички связки: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+
+def add_event(admin_id, name="", date="", place="", info=""):
+    conn = create_connection()
+    sql = ''' INSERT INTO events(name, date, place, info, admin_id)
+                  VALUES(?,?,?,?,?) '''
     try:
         cursor = conn.cursor()
-        cursor.execute(sql, (name, date, place, info, photo, admin_id, members))
+        cursor.execute(sql, (name, date, place, info, admin_id))
         conn.commit()
         event_id = cursor.lastrowid
         return event_id
@@ -108,7 +105,7 @@ def add_event(admin_id, name="", date="", place="", info="", photo="", members="
 
 def get_event_by_id(event_id):
     conn = create_connection()
-    sql = 'SELECT * FROM events WHERE event_id=?'
+    sql = 'SELECT * FROM events WHERE id=?'
     try:
         cursor = conn.cursor()
         cursor.execute(sql, (event_id,))
@@ -121,17 +118,15 @@ def get_event_by_id(event_id):
             conn.close()
 
 
-def update_event(event_id, name=None, date=None, place=None, info=None, photo=None, admin_id=None, members=None):
+def update_event(event_id, name=None, date=None, place=None, info=None, admin_id=None):
     conn = create_connection()
     sql = ''' UPDATE events
                   SET admin_id = ?,
                       name = ?,
                       date = ?,
                       place = ?,
-                      info = ?,
-                      photo = ?,
-                      members = ?
-                  WHERE event_id = ?'''
+                      info = ?
+                  WHERE id = ?'''
     try:
         cursor = conn.cursor()
         current_event = get_event_by_id(event_id)
@@ -139,22 +134,12 @@ def update_event(event_id, name=None, date=None, place=None, info=None, photo=No
             print("Event not found.")
             return
 
-        if members is not None:
-            if ismember.ismember(event_id, members):
-                members = current_event[7].replace(str(members) + " ", "")
-            else:
-                members = current_event[7] + str(members) + " "
-        else:
-            members = current_event[7]
-
         data = (
             admin_id if admin_id is not None else current_event[1],
             name if name is not None else current_event[2],
             datetime.strptime(date, '%d.%m.%Y %H:%M') if date is not None else current_event[3],
             place if place is not None else current_event[4],
             info if info is not None else current_event[5],
-            photo if photo is not None else current_event[6],
-            members,
             event_id,
         )
 
@@ -171,7 +156,7 @@ def delete_event(event_id):
     conn = create_connection()
     cursor = conn.cursor()
 
-    sql_query = '''DELETE FROM events WHERE event_id = ?'''
+    sql_query = '''DELETE FROM events WHERE id = ?'''
 
     try:
         cursor.execute(sql_query, (event_id,))
@@ -203,9 +188,11 @@ def add_user(user_id, username, name="", car_brand="", car_drive="FWD", car_powe
     conn = create_connection()
     sql = ''' INSERT INTO users(id, username, name, car_brand, car_drive, car_power, car_number)
               VALUES(?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING'''
+
     try:
         cursor = conn.cursor()
-        cursor.execute(sql, (user_id, username, name, car_brand, car_drive, car_power, car_number))
+        cursor.execute(sql, (
+        user_id, username if username is not None else " ", name, car_brand, car_drive, car_power, car_number))
         conn.commit()
     except sqlite3.Error as e:
         print(f"Ошибка при добавлении пользователя в базу данных: {e}")
@@ -214,16 +201,16 @@ def add_user(user_id, username, name="", car_brand="", car_drive="FWD", car_powe
             conn.close()
 
 
-def add_log(user_id, event, info=""):
+def delete_user(user_id):
     conn = create_connection()
-    sql = ''' INSERT INTO logs(user_id, event, info)
-              VALUES(?,?,?) '''
+    cursor = conn.cursor()
+    user_id = int(user_id)
     try:
-        cursor = conn.cursor()
-        cursor.execute(sql, (user_id, event, info))
+        cursor.execute('''DELETE FROM users WHERE id = ?''', (user_id,))
         conn.commit()
+        return True
     except sqlite3.Error as e:
-        print(f"Ошибка при добавлении лога: {e}")
+        print(e)
     finally:
         if conn:
             conn.close()
@@ -299,7 +286,67 @@ def get_user_by_id(user_id):
             conn.close()
 
 
+# Функция, возвращающая всех участников одного мероприятия
+def get_event_users(event_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        SELECT id, username, name, car_brand, car_drive, car_power, car_number FROM users
+        INNER JOIN user_event ON users.id = user_event.user_id
+        WHERE event_id = ?
+    ''', (event_id,))
+
+    users = [row for row in cursor.fetchall()]
+
+    conn.close()
+    return users
+
+
+# Функция, возвращающая все мероприятия, в которых участвует один участник
+def get_user_events(user_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        SELECT id, admin_id, name, date, place, info, created_at FROM events
+        INNER JOIN user_event ON events.id = user_event.event_id
+        WHERE user_id = ?
+    ''', (user_id,))
+
+    events = [row for row in cursor.fetchall()]
+
+    conn.close()
+    return events
+
+
+# Функция, добавляющая связь участник - мероприятие
+def add_user_to_event(user_id, event_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        INSERT INTO user_event (user_id, event_id) VALUES (?, ?)
+    ''', (user_id, event_id))
+
+    conn.commit()
+    conn.close()
+
+
+# Функция, удаляющая связь участник - мероприятие
+def remove_user_from_event(user_id, event_id):
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        DELETE FROM user_event WHERE user_id = ? AND event_id = ?
+    ''', (user_id, event_id))
+
+    conn.commit()
+    conn.close()
+
+
 if __name__ == "__main__":
     create_table()
-    create_logs_table()
     create_events_table()
+    create_user_event_table()

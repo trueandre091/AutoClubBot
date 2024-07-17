@@ -1,6 +1,6 @@
 from asyncio import sleep
 
-from telegram import Update, ReplyKeyboardRemove
+from telegram import Update, ReplyKeyboardRemove, ReplyKeyboardMarkup, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
 
 from logs.logger import logger
@@ -8,14 +8,16 @@ import json
 
 from DB import database as db
 from classes.states import *
-from classes.upcoming_events_list import UpcomingEventsPanel
-from functions import isadmin, ismember, issingleevent
+from classes.upcoming_events_panel import UpcomingEventsPanel
+from classes.list_of_users_panel import ListOfUsersPanel
+from functions import isadmin, ismember, isnum
 from panels.general import send_general_panel
 from panels.set_info import send_set_info_name_panel
 from panels.create_event import send_create_event_name_panel
 from panels.publish_event import send_publish_event_panel, send_publish_event_confirm_panel
 from panels.upcoming_events import send_upcoming_events_panel, edit_upcoming_events_panel, \
-    send_delete_event_confirm_panel
+    send_delete_event_confirm_panel, send_upcoming_event_members_panel
+from panels.list_of_users import send_list_of_users_panel, edit_list_of_users_panel
 
 with open("view\\start_view.json", encoding="utf-8") as file:
     start_view = json.load(file)
@@ -27,6 +29,29 @@ with open("view\\publish_event_view.json", encoding="utf-8") as file:
     publish_event_view = json.load(file)
 with open("view\\upcoming_events_view.json", encoding="utf-8") as file:
     upcoming_events_view = json.load(file)
+with open("view\\list_of_users_view.json", encoding="utf-8") as file:
+    list_of_users_view = json.load(file)
+with open("view\\create_event_view.json", encoding="utf-8") as file:
+    create_event_view = json.load(file)
+
+
+async def take_part_in_event(update: Update, context: CallbackContext):
+    query = update.callback_query
+    await query.answer()
+    user = update.callback_query.from_user
+    chat = update.effective_chat
+    if not isnum.isnum(query.data):
+        return
+
+    logger.info("Do / Don't take part in event: %s %s - %s", update.callback_query.from_user.id, update.callback_query.from_user.username, update.callback_query.data)
+
+    event_id = int(query.data)
+    if ismember.ismember(event_id, user.id):
+        db.remove_user_from_event(user.id, event_id)
+        await chat.send_message(upcoming_events_view["3"])
+    else:
+        db.add_user_to_event(user.id, event_id)
+        await chat.send_message(upcoming_events_view["2"])
 
 
 async def set_info_button_handler(update: Update, context: CallbackContext):
@@ -39,6 +64,8 @@ async def upcoming_events_button_handler(update: Update, context: CallbackContex
     user = update.callback_query.from_user
     query = update.callback_query
     chat = update.effective_user
+    await query.answer()
+
     if query.data == general_view["buttons"]["2"]:
         panel = UpcomingEventsPanel(user.id)
         if not panel.events_list:
@@ -56,34 +83,35 @@ async def upcoming_events_button_handler(update: Update, context: CallbackContex
             if panel.user_id == user.id:
                 event_id = panel.get_current_event()[0]
 
-                if query.data == upcoming_events_view["buttons"]["2"]:
-                    logger.info("Add / Remove member %s in event %s", user.username, db.get_event_by_id(event_id)[2])
+                if query.data == upcoming_events_view["buttons"]["1"]:
+                    logger.info("Add / Remove member %s %s in event %s", user.id, user.username, db.get_event_by_id(event_id)[2])
 
-                    db.update_event(event_id, members=user.id)
                     await query.answer()
-                    if ismember.ismember(event_id, user.id):
-                        await chat.send_message(upcoming_events_view["2"])
-                    else:
-                        await chat.send_message(upcoming_events_view["3"])
 
+                    if ismember.ismember(event_id, user.id):
+                        db.remove_user_from_event(user.id, event_id)
+                        await chat.send_message(upcoming_events_view["3"], reply_markup=ReplyKeyboardMarkup(
+                            [[upcoming_events_view["buttons"]["6"]]],
+                            resize_keyboard=True))
+                    else:
+                        db.add_user_to_event(user.id, event_id)
+                        await chat.send_message(upcoming_events_view["2"], reply_markup=ReplyKeyboardMarkup(
+                            [[upcoming_events_view["buttons"]["6"]]],
+                            resize_keyboard=True))
+
+                    return upcoming_events_state
+
+                elif query.data == upcoming_events_view["buttons"]["2"]:
+                    await send_upcoming_event_members_panel(update, context, event_id)
                     return upcoming_events_state
 
                 elif query.data == upcoming_events_view["buttons"]["3"]:
-                    pass
-
-                elif query.data == upcoming_events_view["buttons"]["1"]:
-                    logger.info("Next event: %s - %s", user.username, db.get_event_by_id(event_id)[2])
-
-                    await edit_upcoming_events_panel(update, context, panel, False)
-                    return upcoming_events_state
-
-                elif query.data == upcoming_events_view["buttons"]["4"]:
-                    logger.info("Previous event: %s - %s", user.username, db.get_event_by_id(event_id)[2])
+                    logger.info("Next event: %s %s - %s", user.id, user.username, db.get_event_by_id(event_id)[2])
 
                     await edit_upcoming_events_panel(update, context, panel, True)
                     return upcoming_events_state
 
-                elif query.data == upcoming_events_view["buttons"]["5"]:
+                elif query.data == upcoming_events_view["buttons"]["4"]:
                     message_id = update.effective_message.id
                     context.user_data["event_id"] = event_id
                     context.user_data["buttons"] = ["Не изменять"]
@@ -93,12 +121,12 @@ async def upcoming_events_button_handler(update: Update, context: CallbackContex
 
                     return create_event_name_state
 
-                elif query.data == upcoming_events_view["buttons"]["6"]:
+                elif query.data == upcoming_events_view["buttons"]["5"]:
                     await send_delete_event_confirm_panel(update, context)
                     return upcoming_events_state
 
                 elif query.data == "Да":
-                    logger.info("Delete event: %s - %s", user.username, db.get_event_by_id(event_id)[2])
+                    logger.info("Delete event: %s %s - %s", user.id, user.username, db.get_event_by_id(event_id)[2])
 
                     db.delete_event(event_id)
 
@@ -111,10 +139,37 @@ async def upcoming_events_button_handler(update: Update, context: CallbackContex
                     await query.delete_message()
                     return upcoming_events_state
 
+                else:
+                    await take_part_in_event(update, context)
+
         if event_id == 0:
-            logger.info("Can't find panel: %s", user.username)
+            logger.info("Can't find panel: %s %s", user.id, user.username)
             await query.answer()
             return upcoming_events_state
+
+
+async def list_of_users_button_handler(update: Update, context: CallbackContext):
+    user = update.callback_query.from_user
+    query = update.callback_query
+    chat = update.effective_user
+    await query.answer()
+
+    if query.data == general_view["buttons"]["3"]:
+        panel = ListOfUsersPanel(user.id)
+        await send_list_of_users_panel(update, context, panel)
+
+    elif query.data == list_of_users_view["buttons"]["1"]:
+        flag = True
+        for panel in ListOfUsersPanel.ACTIVE_PANELS:
+            if panel.user_id == user.id:
+                flag = False
+                await edit_list_of_users_panel(update, context, panel)
+
+        if flag:
+            logger.info("Can't find panel: %s %s", user.id, user.username)
+            await query.answer()
+
+    return list_of_users_state
 
 
 async def create_event_button_handler(update: Update, context: CallbackContext):
@@ -136,21 +191,39 @@ async def publish_event_button_handler(update: Update, context: CallbackContext)
 
     elif query.data == publish_event_view["buttons"]["2"]:
         message_id = update.effective_message.id
-        context.user_data["buttons"] = ["Не изменять"]
+        context.user_data["buttons"] = [create_event_view["buttons"]["4"]]
         await update.effective_chat.delete_messages([message_id, message_id - 1])
         await send_create_event_name_panel(update, context)
 
         return create_event_name_state
 
+    elif query.data == publish_event_view["buttons"]["3"]:
+        context.user_data.clear()
+
+        chat = update.effective_chat
+        await chat.send_message("Мероприятие было сохранено без отправки пользователям",
+                                reply_markup=ReplyKeyboardRemove())
+        await sleep(1)
+        await send_general_panel(update, context, isadmin.isadmin(query.from_user.id))
+        return general_state
+
     elif query.data == "Да":
-        logger.info("Publish confirmation: %s", update.effective_user.username)
+        logger.info("Publish confirmation: %s %s", update.effective_user.id, update.effective_user.username)
 
         message_id = update.effective_message.id
         await update.effective_chat.delete_messages([message_id, message_id - 1])
 
         users_db = db.get_all_users()
+        buttons = [InlineKeyboardButton(text=name, callback_data=context.user_data.get("event_id")) for name in
+                   [list(start_view["buttons"].values())[1]]]
+        reply_markup = InlineKeyboardMarkup.from_column(buttons)
+
+        if context.user_data.get("buttons"):
+            send_message = f"{context.user_data.get("message")}\n\n<i>{publish_event_view["8"]}</i>"
+        else:
+            send_message = context.user_data.get("message")
         for user_db in users_db:
-            await context.bot.send_message(user_db[0], context.user_data.get("message"), parse_mode="HTML")
+            await context.bot.send_message(user_db[0], send_message, parse_mode="HTML", reply_markup=reply_markup)
 
         context.user_data.clear()
 
@@ -167,6 +240,9 @@ async def publish_event_button_handler(update: Update, context: CallbackContext)
 
         return publish_event_state
 
+    else:
+        await take_part_in_event(update, context)
+
 
 async def general_buttons_handler(update: Update, context: CallbackContext):
     query = update.callback_query
@@ -175,13 +251,22 @@ async def general_buttons_handler(update: Update, context: CallbackContext):
 
     if query.data in general_view["buttons"].values():
         if query.data == general_view["buttons"]["1"]:
-            logger.info("Set info: %s", user.username)
+            logger.info("Set info: %s %s", user.id, user.username)
+
+            context.user_data["buttons"] = [set_info_view["buttons"]["5"]]
             return await set_info_button_handler(update, context)
 
         elif query.data == general_view["buttons"]["2"]:
-            logger.info("Upcoming events: %s", user.username)
+            logger.info("Upcoming events: %s %s", user.id, user.username)
             return await upcoming_events_button_handler(update, context)
 
         elif query.data == general_view["buttons"]["3"]:
-            logger.info("Create event: admin %s", user.username)
+            logger.info("List of users: %s %s", user.id, user.username)
+            return await list_of_users_button_handler(update, context)
+
+        elif query.data == general_view["buttons"]["4"]:
+            logger.info("Create event: admin %s %s", user.id, user.username)
             return await create_event_button_handler(update, context)
+
+    else:
+        await take_part_in_event(update, context)

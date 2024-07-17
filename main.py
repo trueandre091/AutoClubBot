@@ -7,6 +7,7 @@ from const import TOKEN
 from handler.buttons_handler import *
 from handler.set_info_handler import SET_INFO_HANDLERS_FILTERS
 from handler.create_event_handler import CREATE_EVENT_HANDLERS_FILTERS
+from handler.upcoming_events_handler import cancel_upcoming_events
 from panels.start import *
 from classes.states import *
 
@@ -17,7 +18,9 @@ def main() -> None:
     application = Application.builder().token(TOKEN).build()
 
     general_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start)],
+        entry_points=[
+            CommandHandler('start', start)
+        ],
         states={
             set_info_state: [CallbackQueryHandler(set_info_button_handler)],
             set_info_name_state: SET_INFO_HANDLERS_FILTERS[0],
@@ -26,7 +29,14 @@ def main() -> None:
             set_info_car_power_state: SET_INFO_HANDLERS_FILTERS[3],
             set_info_car_number_state: SET_INFO_HANDLERS_FILTERS[4],
             general_state: [CallbackQueryHandler(general_buttons_handler)],
-            upcoming_events_state: [CallbackQueryHandler(upcoming_events_button_handler)],
+            list_of_users_state: [
+                MessageHandler(filters.Regex("^(Отмена)$"), cancel_upcoming_events),
+                CallbackQueryHandler(list_of_users_button_handler)
+            ],
+            upcoming_events_state: [
+                MessageHandler(filters.Regex("^(Отмена)$"), cancel_upcoming_events),
+                CallbackQueryHandler(upcoming_events_button_handler)
+            ],
             create_event_state: [CallbackQueryHandler(create_event_button_handler)],
             create_event_name_state: CREATE_EVENT_HANDLERS_FILTERS[0],
             create_event_date_state: CREATE_EVENT_HANDLERS_FILTERS[1],
@@ -41,6 +51,7 @@ def main() -> None:
     )
 
     application.add_handler(general_handler)
+    application.add_handler(CommandHandler('delete_user', delete_user))
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 

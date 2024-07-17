@@ -26,8 +26,11 @@ async def send_publish_event_panel(update: Update, context: CallbackContext, isn
     message = create_publish_message(context.user_data.get("event_id"))
     context.user_data["message"] = message
 
-    buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in publish_event_view["buttons"].values()]
-    reply_markup = InlineKeyboardMarkup.from_column(buttons)
+    buttons = list(publish_event_view["buttons"].values())
+    if not context.user_data.get("buttons"):
+        buttons = [buttons[:-1]]
+    reply_keyboard = [InlineKeyboardButton(text=name, callback_data=name) for name in buttons]
+    reply_markup = InlineKeyboardMarkup.from_column(reply_keyboard)
 
     await chat.send_message(
         publish_event_view["6"],

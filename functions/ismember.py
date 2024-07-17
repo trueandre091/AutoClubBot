@@ -2,7 +2,7 @@ from DB import database as db
 
 
 def ismember(event_id, user_id):
-    event_db = db.get_event_by_id(event_id)
-    if str(user_id) in event_db[7].split():
+    events = db.get_user_events(user_id)
+    if event_id in [event[0] for event in events]:
         return True
     return False
