@@ -1,6 +1,5 @@
 import os
 import sqlite3
-from sqlite_dump import iterdump
 from datetime import datetime
 
 DATABASE_DIR = os.path.dirname(__file__)
