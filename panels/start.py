@@ -1,5 +1,5 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove
-from telegram.ext import ContextTypes
+from telegram.ext import ContextTypes, ConversationHandler
 
 from logs.logger import logger
 import json
@@ -22,11 +22,17 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     chat = update.message.chat
 
+    if db.get_user_by_id(user.id) == 1:
+        print("Необходимо создать базу данных. Введите команды ниже\nНажмите Ctrl + C\nВведите python DB\\database.py")
+
+        return ConversationHandler.END
+
     if not db.get_user_by_id(user.id):
         logger.info("New user: %s %s", update.message.from_user.id, update.message.from_user.username)
         db.add_user(user.id, user.username if user.username else " ")
 
-        buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in [list(start_view["buttons"].values())[0]]]
+        buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in
+                   [list(start_view["buttons"].values())[0]]]
         reply_markup = InlineKeyboardMarkup.from_row(buttons)
 
         await chat.send_message(start_view["2"], reply_markup=reply_markup)
@@ -42,7 +48,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def delete_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    logger.info("</delete_user> command: %s %s - %s", update.message.from_user.id, update.message.from_user.username, update.message.text.split()[-1])
+    logger.info("</delete_user> command: %s %s - %s", update.message.from_user.id, update.message.from_user.username,
+                update.message.text.split()[-1])
 
     chat = update.message.chat
     delete_user_id = update.message.text.split()[-1]

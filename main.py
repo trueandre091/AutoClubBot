@@ -46,6 +46,7 @@ def main() -> None:
                 CREATE_EVENT_HANDLERS_FILTERS[4][-1],
                 CallbackQueryHandler(publish_event_button_handler)
             ],
+            failure_state: []
         },
         fallbacks=[]
     )

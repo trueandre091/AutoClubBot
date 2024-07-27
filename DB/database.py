@@ -15,7 +15,8 @@ def create_connection():
     try:
         conn = sqlite3.connect(DATABASE_PATH)
     except sqlite3.Error as e:
-        print(e)
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     return conn
 
 
@@ -36,7 +37,8 @@ def create_table():
         cursor.execute(table_creation_query)
         conn.commit()
     except sqlite3.Error as e:
-        print(e)
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     finally:
         if conn:
             conn.close()
@@ -58,7 +60,8 @@ def create_events_table():
         cursor.execute(table_creation_query)
         conn.commit()
     except sqlite3.Error as e:
-        print(f"Ошибка при создани таблички мероприятий: {e}")
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     finally:
         if conn:
             conn.close()
@@ -79,7 +82,8 @@ def create_user_event_table():
         cursor.execute(table_creation_query)
         conn.commit()
     except sqlite3.Error as e:
-        print(f"Ошибка при создани таблички связки: {e}")
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     finally:
         if conn:
             conn.close()
@@ -96,7 +100,8 @@ def add_event(admin_id, name="", date="", place="", info=""):
         event_id = cursor.lastrowid
         return event_id
     except sqlite3.Error as e:
-        print(f"Ошибка при добавлении мероприятия: {e}")
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     finally:
         if conn:
             conn.close()
@@ -111,7 +116,8 @@ def get_event_by_id(event_id):
         event = cursor.fetchone()
         return event
     except sqlite3.Error as e:
-        print(f"Ошибка при получении мероприятия: {e}")
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     finally:
         if conn:
             conn.close()
@@ -129,7 +135,7 @@ def update_event(event_id, name=None, date=None, place=None, info=None, admin_id
     try:
         cursor = conn.cursor()
         current_event = get_event_by_id(event_id)
-        if not current_event:
+        if isinstance(current_event, int):
             print("Event not found.")
             return
 
@@ -145,7 +151,8 @@ def update_event(event_id, name=None, date=None, place=None, info=None, admin_id
         cursor.execute(sql, data)
         conn.commit()
     except sqlite3.Error as e:
-        print(e)
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     finally:
         if conn:
             conn.close()
@@ -161,7 +168,8 @@ def delete_event(event_id):
         cursor.execute(sql_query, (event_id,))
         conn.commit()
     except sqlite3.Error as e:
-        print(f"Ошибка при удалении мероприятия: {e}")
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     finally:
         if conn:
             conn.close()
@@ -177,7 +185,8 @@ def get_all_events_after(date):
         all_events = cursor.fetchall()
         return all_events
     except sqlite3.Error as e:
-        print(e)
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     finally:
         if conn:
             conn.close()
@@ -194,7 +203,8 @@ def add_user(user_id, username, name="", car_brand="", car_drive="FWD", car_powe
             user_id, username if username is not None else " ", name, car_brand, car_drive, car_power, car_number))
         conn.commit()
     except sqlite3.Error as e:
-        print(f"Ошибка при добавлении пользователя в базу данных: {e}")
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     finally:
         if conn:
             conn.close()
@@ -209,7 +219,8 @@ def delete_user(user_id):
         conn.commit()
         return True
     except sqlite3.Error as e:
-        print(e)
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     finally:
         if conn:
             conn.close()
@@ -225,7 +236,8 @@ def get_all_users():
         all_users = cursor.fetchall()
         return all_users
     except sqlite3.Error as e:
-        print(e)
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     finally:
         if conn:
             conn.close()
@@ -244,7 +256,7 @@ def update_user(user_id, username=None, name=None, car_brand=None, car_drive=Non
     try:
         cursor = conn.cursor()
         current_user = get_user_by_id(user_id)
-        if not current_user:
+        if isinstance(current_user, int):
             print("User not found.")
             return
 
@@ -261,7 +273,8 @@ def update_user(user_id, username=None, name=None, car_brand=None, car_drive=Non
         cursor.execute(sql, data)
         conn.commit()
     except sqlite3.Error as e:
-        print(e)
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     finally:
         if conn:
             conn.close()
@@ -276,7 +289,8 @@ def get_user_by_id(user_id):
         user = cursor.fetchone()
         return user
     except sqlite3.Error as e:
-        print(e)
+        print(e.sqlite_errorcode, e)
+        return e.sqlite_errorcode
     finally:
         if conn:
             conn.close()

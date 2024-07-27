@@ -7,3 +7,5 @@ list_of_users_state = "8"
 create_event_state, create_event_name_state, create_event_date_state, create_event_place_state, create_event_info_state = range(9, 14)
 
 publish_event_state = "15"
+
+failure_state = "-1"
