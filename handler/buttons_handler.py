@@ -230,7 +230,7 @@ async def publish_event_button_handler(update: Update, context: CallbackContext)
         reply_markup = InlineKeyboardMarkup.from_column(buttons)
 
         if context.user_data.get("buttons"):
-            send_message = f"{context.user_data.get("message")}\n\n<i>{publish_event_view["8"]}</i>"
+            send_message = f"{context.user_data.get('message')}\n\n<i>{publish_event_view['8']}</i>"
         else:
             send_message = context.user_data.get("message")
         for user_db in users_db:
