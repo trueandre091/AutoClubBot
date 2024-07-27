@@ -18,8 +18,8 @@ with open("view\\upcoming_event_members_view.json", encoding="utf-8") as file:
 def create_upcoming_events_message(event):
     message = f"<b>{event[2]}</b>"
     message = f"{message}\n{event[5]}" if event[5] else message
-    message = f"{message}\n\n{publish_event_view["4"] + ' ' + event[3]}"
-    message = f"{message}\n{publish_event_view["5"] + ' ' + event[4]}"
+    message = f"{message}\n\n{publish_event_view['4'] + ' ' + event[3]}"
+    message = f"{message}\n{publish_event_view['5'] + ' ' + event[4]}"
     return message
 
 

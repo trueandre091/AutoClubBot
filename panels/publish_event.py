@@ -13,11 +13,11 @@ with open("view\\create_event_view.json", encoding="utf-8") as file:
 
 def create_publish_message(event_id):
     event_db = db.get_event_by_id(event_id)
-    message = f"{publish_event_view["2"]}\n{publish_event_view["3"]}"
+    message = f"{publish_event_view['2']}\n{publish_event_view['3']}"
     message = f"{message}\n\n<b>{event_db[2]}</b>"
     message = f"{message}\n{event_db[5]}" if event_db[5] else message
-    message = f"{message}\n{publish_event_view["4"] + ' ' + event_db[3]}"
-    message = f"{message}\n{publish_event_view["5"] + ' ' + event_db[4]}"
+    message = f"{message}\n{publish_event_view['4'] + ' ' + event_db[3]}"
+    message = f"{message}\n{publish_event_view['5'] + ' ' + event_db[4]}"
     return message
 
 

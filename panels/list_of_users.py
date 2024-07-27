@@ -12,7 +12,7 @@ with open("view\\list_of_users_view.json", encoding="utf-8") as file:
 def create_list_of_users_message(panel):
     page = panel.next_page()
     page_id = panel.page_id
-    message = f"{list_of_users_view["2"]}\n"
+    message = f"{list_of_users_view['2']}\n"
 
     place = int(str(page_id) + "1")
     for user in page:
