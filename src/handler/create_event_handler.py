@@ -13,7 +13,7 @@ from panels.create_event import send_create_event_date_panel, send_create_event_
     send_create_event_info_panel
 from panels.publish_event import send_publish_event_panel
 
-with open("view\\create_event_view.json", encoding="utf-8") as file:
+with open("/src/view/create_event_view.json", encoding="utf-8") as file:
     create_event_view = json.load(file)
 
 

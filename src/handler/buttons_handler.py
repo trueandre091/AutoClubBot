@@ -19,19 +19,19 @@ from panels.upcoming_events import send_upcoming_events_panel, edit_upcoming_eve
     send_delete_event_confirm_panel, send_upcoming_event_members_panel
 from panels.list_of_users import send_list_of_users_panel, edit_list_of_users_panel
 
-with open("view\\start_view.json", encoding="utf-8") as file:
+with open("/src/view/start_view.json", encoding="utf-8") as file:
     start_view = json.load(file)
-with open("view\\set_info_view.json", encoding="utf-8") as file:
+with open("/src/view/set_info_view.json", encoding="utf-8") as file:
     set_info_view = json.load(file)
-with open("view\\general_view.json", encoding="utf-8") as file:
+with open("/src/view/general_view.json", encoding="utf-8") as file:
     general_view = json.load(file)
-with open("view\\publish_event_view.json", encoding="utf-8") as file:
+with open("/src/view/publish_event_view.json", encoding="utf-8") as file:
     publish_event_view = json.load(file)
-with open("view\\upcoming_events_view.json", encoding="utf-8") as file:
+with open("/src/view/upcoming_events_view.json", encoding="utf-8") as file:
     upcoming_events_view = json.load(file)
-with open("view\\list_of_users_view.json", encoding="utf-8") as file:
+with open("/src/view/list_of_users_view.json", encoding="utf-8") as file:
     list_of_users_view = json.load(file)
-with open("view\\create_event_view.json", encoding="utf-8") as file:
+with open("/src/view/create_event_view.json", encoding="utf-8") as file:
     create_event_view = json.load(file)
 
 

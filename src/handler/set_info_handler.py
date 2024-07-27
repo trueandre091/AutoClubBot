@@ -13,7 +13,7 @@ from panels.general import send_general_panel
 from panels.set_info import send_set_info_car_brand_panel, send_set_info_car_drive_panel, \
     send_set_info_car_power_panel, send_set_info_car_number_panel
 
-with open("view\\set_info_view.json", encoding="utf-8") as file:
+with open("/src/view/set_info_view.json", encoding="utf-8") as file:
     set_info_view = json.load(file)
 
 

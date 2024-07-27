@@ -8,9 +8,9 @@ from functions import isadmin
 from classes.states import *
 from panels.general import send_general_panel
 
-with open("view\\upcoming_events_view.json", encoding="utf-8") as file:
+with open("/src/view/upcoming_events_view.json", encoding="utf-8") as file:
     upcoming_events_view = json.load(file)
-with open("view\\upcoming_event_members_view.json", encoding="utf-8") as file:
+with open("/src/view/upcoming_event_members_view.json", encoding="utf-8") as file:
     upcoming_event_members_view = json.load(file)
 
 

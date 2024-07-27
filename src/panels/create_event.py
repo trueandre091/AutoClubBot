@@ -5,7 +5,7 @@ from telegram.ext import CallbackContext
 
 import json
 
-with open("view\\create_event_view.json", encoding="utf-8") as file:
+with open("/src/view/create_event_view.json", encoding="utf-8") as file:
     create_event_view = json.load(file)
 
 
