@@ -1,10 +1,9 @@
-from datetime import datetime
-
 from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import CallbackContext, MessageHandler, filters
 
 from logs.logger import logger
 import json
+from asyncio import sleep
 
 from DB import database as db
 from classes.states import *
@@ -82,6 +81,8 @@ async def cancel_create_event(update: Update, context: CallbackContext) -> int:
 
     await update.message.reply_text(create_event_view["7"],
                                     reply_markup=ReplyKeyboardRemove())
+    await sleep(1)
+    await context.bot.delete_message(update.effective_chat.id, update.message.id + 1)
 
     await send_general_panel(update, context, isadmin.isadmin(update.message.from_user.id))
     return general_state

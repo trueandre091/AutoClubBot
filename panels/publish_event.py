@@ -28,7 +28,7 @@ async def send_publish_event_panel(update: Update, context: CallbackContext, isn
 
     buttons = list(publish_event_view["buttons"].values())
     if not context.user_data.get("buttons"):
-        buttons = [buttons[:-1]]
+        buttons = buttons[:-1]
     reply_keyboard = [InlineKeyboardButton(text=name, callback_data=name) for name in buttons]
     reply_markup = InlineKeyboardMarkup.from_column(reply_keyboard)
 

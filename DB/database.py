@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from sqlite_dump import iterdump
 from datetime import datetime
 
 DATABASE_DIR = os.path.dirname(__file__)
@@ -30,8 +31,7 @@ def create_table():
                                         car_drive text check(car_drive IN ('FWD', 'RWD', 'AWD')),
                                         car_power integer NOT NULL,
                                         car_number text NOT NULL,
-                                        entry_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                                        last_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                                        entry_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
                                     ); """
     try:
         cursor.execute(table_creation_query)
@@ -192,7 +192,7 @@ def add_user(user_id, username, name="", car_brand="", car_drive="FWD", car_powe
     try:
         cursor = conn.cursor()
         cursor.execute(sql, (
-        user_id, username if username is not None else " ", name, car_brand, car_drive, car_power, car_number))
+            user_id, username if username is not None else " ", name, car_brand, car_drive, car_power, car_number))
         conn.commit()
     except sqlite3.Error as e:
         print(f"Ошибка при добавлении пользователя в базу данных: {e}")
@@ -232,8 +232,7 @@ def get_all_users():
             conn.close()
 
 
-def update_user(user_id, username=None, name=None, car_brand=None, car_drive=None, car_power=None, car_number=None,
-                last_timestamp=datetime.now()):
+def update_user(user_id, username=None, name=None, car_brand=None, car_drive=None, car_power=None, car_number=None):
     conn = create_connection()
     sql = ''' UPDATE users
               SET username = ?,
@@ -241,8 +240,7 @@ def update_user(user_id, username=None, name=None, car_brand=None, car_drive=Non
                   car_brand = ?,
                   car_drive = ?,
                   car_power = ?,
-                  car_number = ?,
-                  last_timestamp = ?
+                  car_number = ?
               WHERE id = ?'''
     try:
         cursor = conn.cursor()
@@ -258,7 +256,6 @@ def update_user(user_id, username=None, name=None, car_brand=None, car_drive=Non
             car_drive if car_drive is not None else current_user[4],
             car_power if car_power is not None else current_user[5],
             car_number if car_number is not None else current_user[6],
-            last_timestamp,
             user_id,
         )
 
@@ -342,6 +339,19 @@ def remove_user_from_event(user_id, event_id):
         DELETE FROM user_event WHERE user_id = ? AND event_id = ?
     ''', (user_id, event_id))
 
+    conn.commit()
+    conn.close()
+
+
+def delete_user_event_by_event(event_id):
+    # Подключение к базе данных
+    conn = create_connection()
+    cursor = conn.cursor()
+
+    # Запрос на удаление
+    cursor.execute("DELETE FROM user_event WHERE event_id = ?", (event_id,))
+
+    # Сохранение изменений и закрытие соединения
     conn.commit()
     conn.close()
 

@@ -71,7 +71,10 @@ async def upcoming_events_button_handler(update: Update, context: CallbackContex
         if not panel.events_list:
             panel.disactivate()
             await chat.send_message(upcoming_events_view["4"])
+            await sleep(2)
+            await context.bot.delete_message(update.effective_chat.id, query.message.message_id + 1)
 
+            await send_general_panel(update, context, isadmin.isadmin(user.id))
             return general_state
 
         await send_upcoming_events_panel(update, context, panel)
@@ -129,10 +132,14 @@ async def upcoming_events_button_handler(update: Update, context: CallbackContex
                     logger.info("Delete event: %s %s - %s", user.id, user.username, db.get_event_by_id(event_id)[2])
 
                     db.delete_event(event_id)
+                    db.delete_user_event_by_event(event_id)
 
                     await chat.send_message(upcoming_events_view["6"],
                                             reply_markup=ReplyKeyboardRemove())
+                    await context.bot.delete_message(update.effective_chat.id, query.message.message_id - 1)
                     await query.delete_message()
+
+                    await send_general_panel(update, context, isadmin.isadmin(user.id))
                     return general_state
 
                 elif query.data == "Нет":
@@ -190,6 +197,8 @@ async def publish_event_button_handler(update: Update, context: CallbackContext)
         return publish_event_state
 
     elif query.data == publish_event_view["buttons"]["2"]:
+        await query.delete_message()
+
         message_id = update.effective_message.id
         context.user_data["buttons"] = [create_event_view["buttons"]["4"]]
         await update.effective_chat.delete_messages([message_id, message_id - 1])
@@ -198,7 +207,7 @@ async def publish_event_button_handler(update: Update, context: CallbackContext)
         return create_event_name_state
 
     elif query.data == publish_event_view["buttons"]["3"]:
-        await query.answer()
+        await query.delete_message()
 
         context.user_data.clear()
 
@@ -255,19 +264,27 @@ async def general_buttons_handler(update: Update, context: CallbackContext):
         if query.data == general_view["buttons"]["1"]:
             logger.info("Set info: %s %s", user.id, user.username)
 
+            await query.delete_message()
+
             context.user_data["buttons"] = [set_info_view["buttons"]["5"]]
             return await set_info_button_handler(update, context)
 
         elif query.data == general_view["buttons"]["2"]:
             logger.info("Upcoming events: %s %s", user.id, user.username)
+
+            await query.delete_message()
             return await upcoming_events_button_handler(update, context)
 
         elif query.data == general_view["buttons"]["3"]:
             logger.info("List of users: %s %s", user.id, user.username)
+
+            await query.delete_message()
             return await list_of_users_button_handler(update, context)
 
         elif query.data == general_view["buttons"]["4"]:
             logger.info("Create event: admin %s %s", user.id, user.username)
+
+            await query.delete_message()
             return await create_event_button_handler(update, context)
 
     else:
