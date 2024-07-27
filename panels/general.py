@@ -12,11 +12,11 @@ with open("view\\general_view.json", encoding="utf-8") as file:
 
 def create_general_message(user_id):
     user_db = db.get_user_by_id(user_id)
-    message = f"{general_view['2'] + ", " + user_db[2] + "!"}\n{general_view['3']}"
-    message = f"{message}\n\n{general_view['4'] + " " + str(user_db[6])}"
-    message = f"{message}\n{general_view['5'] + " " + str(user_db[4])}"
-    message = f"{message}\n{general_view['6'] + " " + str(user_db[3])}"
-    message = f"{message}\n{general_view['7'] + " " + str(user_db[5])}"
+    message = f"{general_view['2'] + ', ' + user_db[2] + '!'}\n{general_view['3']}"
+    message = f"{message}\n\n{general_view['4'] + ' ' + str(user_db[6])}"
+    message = f"{message}\n{general_view['5'] + ' ' + str(user_db[4])}"
+    message = f"{message}\n{general_view['6'] + ' ' + str(user_db[3])}"
+    message = f"{message}\n{general_view['7'] + ' ' + str(user_db[5])}"
     message = f"{message}\n\n{general_view['8']}"
     return message
 
