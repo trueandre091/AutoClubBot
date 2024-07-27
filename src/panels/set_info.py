@@ -4,7 +4,7 @@ from telegram.ext import CallbackContext
 from logs.logger import logger
 import json
 
-with open("view\\set_info_view.json", encoding="utf-8") as file:
+with open("/src/view/set_info_view.json", encoding="utf-8") as file:
     set_info_view = json.load(file)
 
 

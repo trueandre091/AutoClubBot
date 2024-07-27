@@ -3,7 +3,7 @@ import json
 
 from DB import database as db
 
-with open("view\\upcoming_events_view.json", encoding="utf-8") as file:
+with open("/src/view/upcoming_events_view.json", encoding="utf-8") as file:
     upcoming_events_view = json.load(file)
 
 

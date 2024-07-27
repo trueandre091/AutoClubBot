@@ -6,7 +6,7 @@ import json
 
 from DB import database as db
 
-with open("view\\general_view.json", encoding="utf-8") as file:
+with open("/src/view/general_view.json", encoding="utf-8") as file:
     general_view = json.load(file)
 
 

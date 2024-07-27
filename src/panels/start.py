@@ -10,9 +10,9 @@ from functions import isadmin, issetinfo, isnum
 from handler.buttons_handler import set_info_button_handler
 from panels.general import send_general_panel
 
-with open("view\\start_view.json", encoding="utf-8") as file:
+with open("/src/view/start_view.json", encoding="utf-8") as file:
     start_view = json.load(file)
-with open("view\\set_info_view.json", encoding="utf-8") as file:
+with open("/src/view/set_info_view.json", encoding="utf-8") as file:
     set_info_view = json.load(file)
 
 

@@ -5,9 +5,9 @@ import json
 
 from DB import database as db
 
-with open("view\\publish_event_view.json", encoding="utf-8") as file:
+with open("/src/view/publish_event_view.json", encoding="utf-8") as file:
     publish_event_view = json.load(file)
-with open("view\\create_event_view.json", encoding="utf-8") as file:
+with open("/src/view/create_event_view.json", encoding="utf-8") as file:
     create_event_view = json.load(file)
 
 
