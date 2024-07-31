@@ -233,13 +233,19 @@ async def publish_event_button_handler(update: Update, context: CallbackContext)
             send_message = f"{context.user_data.get('message')}\n\n<i>{publish_event_view['8']}</i>"
         else:
             send_message = context.user_data.get("message")
+
+        messages_num = 0
         for user_db in users_db:
-            await context.bot.send_message(user_db[0], send_message, parse_mode="HTML", reply_markup=reply_markup)
+            try:
+                await context.bot.send_message(user_db[0], send_message, parse_mode="HTML", reply_markup=reply_markup)
+                messages_num += 1
+            except:
+                pass
 
         context.user_data.clear()
 
         chat = update.effective_chat
-        await chat.send_message(f"Сообщение отправлено всем пользователям. Количество: {len(users_db)}",
+        await chat.send_message(f"Сообщение отправлено всем пользователям. Количество: {messages_num}",
                                 reply_markup=ReplyKeyboardRemove())
         await sleep(1)
         await send_general_panel(update, context, isadmin.isadmin(query.from_user.id))
