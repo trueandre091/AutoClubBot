@@ -19,7 +19,7 @@ class ListOfUsersPanel:
     def __init__(self, user_id) -> None:
         self.user_id = user_id
         self.page_id = 0
-        self.users = sorted(db.get_all_users(), key=lambda x: x[4] and not x[5])
+        self.users = sorted(db.get_all_users(), key=lambda x: (x[4], -x[5]))
         self.pages = split(self.users, 15)
         self.ACTIVE_PANELS.append(self)
 
